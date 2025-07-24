@@ -12,10 +12,13 @@ public:
 	const int UNDER_CAPACITY = 1;
 	const int CAPACITY_PER_HOUR = 3;
 	BookingScheduler bookingScheduler{ CAPACITY_PER_HOUR };
+	TestableSmsSender testableSmsSender;
 
 	void SetUp() override {
 		NOT_ON_THE_HOUR = getTime(2021, 3, 26, 9, 5);
 		ON_THE_HOUR = getTime(2021, 3, 26, 9, 0);
+
+		bookingScheduler.setSmsSender(&testableSmsSender);
 	}
 	
 
@@ -83,9 +86,7 @@ TEST_F(BookingItem, 시간대별인원제한이있다같은시간대가다르면Capacity차있어도스케
 }
 
 TEST_F(BookingItem, 예약완료시SMS는무조건발송) {
-	TestableSmsSender testableSmsSender;
 	Schedule* schedule = new Schedule{ ON_THE_HOUR, CAPACITY_PER_HOUR, CUSTOMER };
-	bookingScheduler.setSmsSender(&testableSmsSender);
 
 	bookingScheduler.addSchedule(schedule);
 
