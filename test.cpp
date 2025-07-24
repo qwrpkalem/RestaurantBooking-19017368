@@ -26,7 +26,7 @@ public:
 		bookingScheduler.setSmsSender(&testableSmsSender);
 		bookingScheduler.setMailSender(&testableMailSender);
 	}
-	
+
 
 	tm getTime(int year, int mon, int day, int hour, int min) {
 		tm result = { 0,min, hour, day, mon - 1, year - 1900, 0, 0, -1 };
@@ -130,7 +130,15 @@ TEST_F(BookingItem, 현재날짜가일요일인경우예약불가예외처리) {
 	}
 }
 
-TEST(BookingSchedulerTest, 현재날짜가일요일이아닌경우예약가능) {
+TEST_F(BookingItem, 현재날짜가일요일이아닌경우예약가능) {
+	BookingScheduler* bookingScheduler = new MondayBookingScheduler{ CAPACITY_PER_HOUR };
+
+
+	Schedule* schedule = new Schedule{ ON_THE_HOUR, UNDER_CAPACITY, CUSTOMER_WITH_MAIL };
+	bookingScheduler->addSchedule(schedule);
+
+	EXPECT_EQ(true, bookingScheduler->hasSchedule(schedule));
+	
 
 }
 
