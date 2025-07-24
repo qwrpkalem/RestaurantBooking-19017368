@@ -5,7 +5,7 @@ using namespace testing;
 
 class BookingItem : public Test {
 public:
-	Customer customer{ "Fake me", "010-1234-5678" };
+	Customer CUSTOMER{ "Fake me", "010-1234-5678" };
 	tm NOT_ON_THE_HOUR;
 	tm ON_THE_HOUR;
 	const int UNDER_CAPACITY = 1;
@@ -23,10 +23,16 @@ public:
 		mktime(&result);
 		return result;
 	}
+
+	tm plusHour(tm base, int hour) {
+		base.tm_hour += hour;
+		mktime(&base);
+		return base;
+	}
 };
 
 TEST_F(BookingItem, 예약은정시에만가능하다정시가아닌경우예약불가) {
-	Schedule* schedule = new Schedule{ NOT_ON_THE_HOUR , UNDER_CAPACITY, customer };
+	Schedule* schedule = new Schedule{ NOT_ON_THE_HOUR , UNDER_CAPACITY, CUSTOMER };
 
 	//act
 	EXPECT_THROW({
@@ -35,7 +41,7 @@ TEST_F(BookingItem, 예약은정시에만가능하다정시가아닌경우예약불가) {
 }
 
 TEST_F(BookingItem, 예약은정시에만가능하다정시인경우예약가능) {
-	Schedule* schedule = new Schedule{ ON_THE_HOUR , UNDER_CAPACITY, customer };
+	Schedule* schedule = new Schedule{ ON_THE_HOUR , UNDER_CAPACITY, CUSTOMER };
 
 	//act
 	bookingScheduler.addSchedule(schedule);
@@ -44,12 +50,12 @@ TEST_F(BookingItem, 예약은정시에만가능하다정시인경우예약가능) {
 }
 
 TEST_F(BookingItem, 시간대별인원제한이있다같은시간대에Capacity초과할경우예외발생) {
-	Schedule* schedule = new Schedule{ ON_THE_HOUR , CAPACITY_PER_HOUR, customer };
+	Schedule* schedule = new Schedule{ ON_THE_HOUR , CAPACITY_PER_HOUR, CUSTOMER };
 	bookingScheduler.addSchedule(schedule);
 
 	// act
 	try {
-		Schedule* newSchedule = new Schedule{ ON_THE_HOUR , UNDER_CAPACITY, customer };
+		Schedule* newSchedule = new Schedule{ ON_THE_HOUR , UNDER_CAPACITY, CUSTOMER };
 		bookingScheduler.addSchedule(newSchedule);
 		FAIL();
 	}
@@ -60,7 +66,18 @@ TEST_F(BookingItem, 시간대별인원제한이있다같은시간대에Capacity초과할경우예외발생
 	}
 }
 
-TEST(BookingSchedulerTest, 시간대별인원제한이있다같은시간대가다르면Capacity차있어도스케쥴추가성공) {
+TEST_F(BookingItem, 시간대별인원제한이있다같은시간대가다르면Capacity차있어도스케쥴추가성공) {
+	Schedule* schedule = new Schedule{ ON_THE_HOUR , CAPACITY_PER_HOUR, CUSTOMER };
+	bookingScheduler.addSchedule(schedule);
+
+	tm differentHour = plusHour(ON_THE_HOUR, 1);
+
+	Schedule* newSchedule = new Schedule{ differentHour, UNDER_CAPACITY, CUSTOMER };
+	bookingScheduler.addSchedule(newSchedule);
+
+	//assert
+	EXPECT_EQ(true, bookingScheduler.hasSchedule(schedule));
+
 
 }
 
